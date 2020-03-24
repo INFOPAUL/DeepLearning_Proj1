@@ -15,7 +15,7 @@ class SimpleConvNet(nn.Module):
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2))
 
-        self.fc1 = nn.Linear(4 * 4 * 64, 1000)
+        self.fc1 = nn.Linear(7 * 7 * 64, 1000)
 
         self.fc2 = nn.Linear(1000, 2)
 
@@ -28,7 +28,7 @@ class SimpleConvNet(nn.Module):
         out = out.reshape(out.size(0), -1)
 
         # Relu activation of last layer
-        out = F.relu(self.fc1(out.view(-1, 4 * 4 * 64)))
+        out = F.relu(self.fc1(out.view(-1, 7 * 7 * 64)))
 
         out = self.fc2(out)
         return out

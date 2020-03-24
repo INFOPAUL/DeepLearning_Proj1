@@ -1,32 +1,27 @@
 import torch
 from PIL import Image
 from torch.utils.data import Dataset
+from torchvision.datasets import MNIST
 
 
-class CustomDataset(Dataset):
-    def __init__(self, data_tensor, train=True, transform=None):
-        if train:
-            self.data = data_tensor[0]
-            self.targets = data_tensor[1]
-        else:
-            self.data = data_tensor[3]
-            self.targets = data_tensor[4]
+class CustomDataset(MNIST):
+    def __init__(self, root, train=True, transform=None, nb=1000):
+        super(CustomDataset, self).__init__(root, train = train, download = True, transform = transform)
 
-        self.transform = transform
+        input = self.data
+        target = self.targets
+
+        a = torch.randperm(input.size(0))
+        self.input_indexes = a[:2 * nb].view(nb, 2)
+        classes = target[self.input_indexes]
+        self.target = (classes[:, 0] <= classes[:, 1]).long()
 
     def __len__(self):
-        return len(self.data)
+        return len(self.input_indexes)
 
     def __getitem__(self, index):
-        img, target = self.data[index], int(self.targets[index])
+        target = int(self.target[index])
+        img1 = super(CustomDataset, self).__getitem__(self.input_indexes[index][0])[0]
+        img2 = super(CustomDataset, self).__getitem__(self.input_indexes[index][1])[0]
 
-        # doing this so that it is consistent with all other datasets
-        # to return a PIL Image
-        img1 = Image.fromarray(img[0].numpy(), mode='L')
-        img2 = Image.fromarray(img[1].numpy(), mode='L')
-
-        if self.transform is not None:
-            img[0] = self.transform(img1)
-            img[1] = self.transform(img2)
-
-        return img, target
+        return torch.cat((img1, img2), 0), target

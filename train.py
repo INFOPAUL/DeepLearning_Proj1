@@ -8,14 +8,13 @@ from torch.utils.tensorboard import SummaryWriter
 
 from architectures.SimpleConvNet import SimpleConvNet
 from dataset.CustomDataset import CustomDataset
-from helpers.dlc_practical_prologue import generate_pair_sets
 from helpers.mean import Mean
 
 
 def train(config):
 
     # Set the seed
-    torch.manual_seed(config['seed'])
+    #torch.manual_seed(config['seed'])
 
     # We will run on CUDA if there is a GPU available
     device = get_device()
@@ -26,10 +25,6 @@ def train(config):
     optimizer = get_optimizer(model.parameters(),config)
     criterion = torch.nn.CrossEntropyLoss()
 
-    train_loss = Mean()
-    train_accuracy = Mean()
-    test_loss = Mean()
-    test_accuracy = Mean()
     writer = SummaryWriter(log_dir='./logs')
 
     for epoch in range(config['num_epochs']):
@@ -41,8 +36,12 @@ def train(config):
         # Update the optimizer's learning rate
         #scheduler.step(epoch)
 
+        train_loss = Mean()
+        train_accuracy = Mean()
+
         for batch_x, batch_y in training_loader:
             batch_x, batch_y = batch_x.to(device), batch_y.to(device)
+
 
             # Compute gradients for the batch
             optimizer.zero_grad()
@@ -77,8 +76,8 @@ def train(config):
 
         # Evaluation
         model.eval()
-        # mean_test_accuracy = utils.accumulators.Mean()
-        # mean_test_loss = utils.accumulators.Mean()
+        test_loss = Mean()
+        test_accuracy = Mean()
         for batch_x, batch_y in test_loader:
             batch_x, batch_y = batch_x.to(device), batch_y.to(device)
             prediction = model(batch_x)
@@ -86,8 +85,7 @@ def train(config):
             acc = accuracy(prediction, batch_y)
             test_loss.add(loss.item(), weight=len(batch_x))
             test_accuracy.add(acc.item(), weight=len(batch_x))
-            #print(loss.item())
-            #print(acc.item())
+
         # Log test stats
         log_metric(
             'accuracy',
@@ -118,30 +116,32 @@ def log_metric(name, values, tags):
     print("{name}: {values} ({tags})".format(name=name, values=values, tags=tags))
 
 def get_device():
-    return torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    return torch.device('cuda:7' if torch.cuda.is_available() else 'cpu')
 
 def get_dataset(config):
     #train_input, train_target, train_classes, test_input, test_target, test_classes = generate_pair_sets(1000)
-    data = generate_pair_sets(1000)
+    #data = generate_pair_sets(1000)
 
-    data_mean, data_stddev = data[0].mean().item() / 255, data[0].std().item() / 255
-    #data_mean = (0.1307,)
-    #data_stddev = (0.3081,)
+    #data_mean, data_stddev = data[0].mean().item()/ 255, data[0].std().item()/ 255
+
+    #dataset statistics
+    data_mean = 0.1307
+    data_stddev = 0.3081
 
     transform_train = torchvision.transforms.Compose([
-        #torchvision.transforms.RandomCrop(data[0].size(2), padding=2),
-        #torchvision.transforms.RandomHorizontalFlip(),
+        torchvision.transforms.RandomCrop(28, padding=4),
+        torchvision.transforms.RandomHorizontalFlip(),
         torchvision.transforms.ToTensor(),
-       # torchvision.transforms.Normalize([data_mean], [data_stddev]),
+        torchvision.transforms.Normalize([data_mean], [data_stddev]),
     ])
 
     transform_test = torchvision.transforms.Compose([
         torchvision.transforms.ToTensor(),
-        #torchvision.transforms.Normalize([data_mean], [data_stddev]),
+        torchvision.transforms.Normalize([data_mean], [data_stddev]),
     ])
 
-    training_set = CustomDataset(data_tensor=data, train=True, transform=transform_train)
-    test_set = CustomDataset(data_tensor=data, train=False, transform=transform_test)
+    training_set = CustomDataset('./data/mnist/', train=True, transform=transform_train)
+    test_set = CustomDataset('./data/mnist/', train=False, transform=transform_test)
 
 
     training_loader = torch.utils.data.DataLoader(
@@ -155,11 +155,6 @@ def get_dataset(config):
         shuffle=False,
     )
 
-
-    #normalizing data
-    #mean, std = train_input.mean(), train_input.std()
-    #train_input.sub_(mean).div_(std)
-    #test_input.sub_(mean).div_(std)
     return training_loader, test_loader
 
 
