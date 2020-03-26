@@ -2,6 +2,7 @@ import torch
 import torchvision
 
 from architectures.Siamese import Siamese
+from architectures.Siamese_no_WS import Siamese_no_WS
 from architectures.SimpleConvNet import SimpleConvNet
 from dataset.CustomDataset import CustomDataset
 
@@ -84,7 +85,8 @@ def get_optimizer(model_parameters, config):
 def get_model(device, config):
     model = {
         'simple_conv':  lambda: SimpleConvNet(config['class_num'], config['channels_in']),
-        'siamese': lambda: Siamese(config['class_num'])
+        'siamese': lambda: Siamese(config['class_num']),
+        'siamese_no_WS': lambda: Siamese_no_WS(config['class_num'])
     }[config['model']]()
 
     model.to(device)
