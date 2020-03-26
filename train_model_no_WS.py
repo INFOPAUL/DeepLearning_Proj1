@@ -41,14 +41,24 @@ def train(config):
         train_accuracy = Mean()
 
         for batch_x, batch_y, batch_classes in training_loader:
-            batch_x, batch_y = batch_x.to(device), batch_y.to(device)
+
+            batch_x_1 = batch_x[:, 0, :, :].view(-1, 1, batch_x.size(2), batch_x.size(3)).to(device)
+            batch_x_2 = batch_x[:, 1, :, :].view(-1, 1, batch_x.size(2), batch_x.size(3)).to(device)
+
+            batch_classes_1 = batch_classes[:, 0].to(device)
+            batch_classes_2 = batch_classes[:, 1].to(device)
+
+            batch_y = batch_y.to(device)
 
 
             # Compute gradients for the batch
             optimizer.zero_grad()
-            prediction = model(batch_x)
-            loss = criterion(prediction, batch_y)
-            acc = accuracy(prediction, batch_y)
+            prediction_1 = model(batch_x_1)
+            prediction_2 = model(batch_x_2)
+            loss = (criterion(prediction_1, batch_classes_1) + criterion(prediction_2, batch_classes_2)) / 2
+
+
+            acc = accuracy(prediction_1.argmax(1) <= prediction_2.argmax(1), batch_y, argmax=False)
             loss.backward()
 
             # Do an optimizer step
@@ -80,10 +90,21 @@ def train(config):
         test_loss = Mean()
         test_accuracy = Mean()
         for batch_x, batch_y, batch_classes in test_loader:
-            batch_x, batch_y = batch_x.to(device), batch_y.to(device)
-            prediction = model(batch_x)
-            loss = criterion(prediction, batch_y)
-            acc = accuracy(prediction, batch_y)
+
+            batch_x_1 = batch_x[:, 0, :, :].view(-1, 1, batch_x.size(2), batch_x.size(3)).to(device)
+            batch_x_2 = batch_x[:, 1, :, :].view(-1, 1, batch_x.size(2), batch_x.size(3)).to(device)
+
+            batch_classes_1 = batch_classes[:, 0].to(device)
+            batch_classes_2 = batch_classes[:, 1].to(device)
+
+            batch_y = batch_y.to(device)
+
+            prediction_1 = model(batch_x_1)
+            prediction_2 = model(batch_x_2)
+            loss = (criterion(prediction_1, batch_classes_1) + criterion(prediction_2, batch_classes_2)) / 2
+
+            acc = accuracy(prediction_1.argmax(1) <= prediction_2.argmax(1), batch_y, argmax=False)
+
             test_loss.add(loss.item(), weight=len(batch_x))
             test_accuracy.add(acc.item(), weight=len(batch_x))
 

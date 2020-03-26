@@ -3,10 +3,10 @@ from torch.nn import functional as F
 
 
 class SimpleConvNet(nn.Module):
-    def __init__(self):
+    def __init__(self, class_num, channels_in):
         super(SimpleConvNet, self).__init__()
         self.block1 = nn.Sequential(
-            nn.Conv2d(2, 32, kernel_size=5, stride=1, padding=2),
+            nn.Conv2d(channels_in, 32, kernel_size=5, stride=1, padding=2),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2))
 
@@ -17,7 +17,7 @@ class SimpleConvNet(nn.Module):
 
         self.fc1 = nn.Linear(7 * 7 * 64, 1000)
 
-        self.fc2 = nn.Linear(1000, 2)
+        self.fc2 = nn.Linear(1000, class_num)
 
     def forward(self, x):
         out = self.block1(x)

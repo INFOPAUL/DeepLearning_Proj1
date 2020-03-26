@@ -13,15 +13,16 @@ class CustomDataset(MNIST):
 
         a = torch.randperm(input.size(0))
         self.input_indexes = a[:2 * nb].view(nb, 2)
-        classes = target[self.input_indexes]
-        self.target = (classes[:, 0] <= classes[:, 1]).long()
+        self.classes = target[self.input_indexes]
+        self.target = (self.classes[:, 0] <= self.classes[:, 1]).long()
 
     def __len__(self):
         return len(self.input_indexes)
 
     def __getitem__(self, index):
         target = int(self.target[index])
+        classes = self.classes[index]
         img1 = super(CustomDataset, self).__getitem__(self.input_indexes[index][0])[0]
         img2 = super(CustomDataset, self).__getitem__(self.input_indexes[index][1])[0]
 
-        return torch.cat((img1, img2), 0), target
+        return torch.cat((img1, img2), 0), target, classes
