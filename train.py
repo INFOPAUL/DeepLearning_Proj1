@@ -72,8 +72,8 @@ def train(config):
             {'split': 'train'}
         )
 
-        # writer.add_scalar('Loss/train', mean_train_loss.value(), epoch)
-        # writer.add_scalar('Accuracy/train', mean_train_accuracy.value(), epoch)
+        writer.add_scalar('Loss/train', train_loss.val(), epoch)
+        writer.add_scalar('Accuracy/train', train_accuracy.val(), epoch)
 
         # Evaluation
         model.eval()
@@ -99,8 +99,8 @@ def train(config):
             {'split': 'test'}
         )
 
-        # writer.add_scalar('Loss/test', mean_test_loss.value(), epoch)
-        # writer.add_scalar('Accuracy/test', mean_test_accuracy.value(), epoch)
+        writer.add_scalar('Loss/test', test_loss.val(), epoch)
+        writer.add_scalar('Accuracy/test', test_accuracy.val(), epoch)
         writer.flush()
 
     writer.close()

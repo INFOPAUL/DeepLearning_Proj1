@@ -21,7 +21,7 @@ def log_metric(name, values, tags):
     print("{name}: {values} ({tags})".format(name=name, values=values, tags=tags))
 
 def get_device():
-    return torch.device('cuda:7' if torch.cuda.is_available() else 'cpu')
+    return torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def get_dataset(config):
     #train_input, train_target, train_classes, test_input, test_target, test_classes = generate_pair_sets(1000)

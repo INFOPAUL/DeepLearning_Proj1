@@ -1,0 +1,15 @@
+[I 16:20:03.719 NotebookApp] Serving notebooks from local directory: /home/jbanjac/DeepLearning_Proj1/notebooks
+[I 16:20:03.719 NotebookApp] The Jupyter Notebook is running at:
+[I 16:20:03.720 NotebookApp] http://lts2srv5:8888/?token=0a0e449d64e02ee14857aecaaa5999ee953d138602b4f813
+[I 16:20:03.720 NotebookApp]  or http://127.0.0.1:8888/?token=0a0e449d64e02ee14857aecaaa5999ee953d138602b4f813
+[I 16:20:03.720 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[W 16:20:03.723 NotebookApp] No web browser found: could not locate runnable browser.
+[C 16:20:03.723 NotebookApp] 
+    
+    To access the notebook, open this file in a browser:
+        file:///home/jbanjac/.local/share/jupyter/runtime/nbserver-28766-open.html
+    Or copy and paste one of these URLs:
+        http://lts2srv5:8888/?token=0a0e449d64e02ee14857aecaaa5999ee953d138602b4f813
+     or http://127.0.0.1:8888/?token=0a0e449d64e02ee14857aecaaa5999ee953d138602b4f813
+[I 16:20:10.312 NotebookApp] 302 GET / (128.179.253.11) 1.38ms
+[I 16:20:10.332 NotebookApp] 302 GET /tree? (128.179.253.11) 1.93ms
