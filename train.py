@@ -11,6 +11,7 @@ from dataset.CustomDataset import CustomDataset
 from helpers.mean import Mean
 from helpers.train_helpers import log_metric, get_device, get_dataset, get_optimizer, get_model, accuracy
 
+from datetime import datetime
 
 def train(config):
 
@@ -23,13 +24,14 @@ def train(config):
     # `config` dictionary.
     training_loader, test_loader = get_dataset(config)
     model = get_model(device, config)
-    optimizer = get_optimizer(model.parameters(),config)
+    optimizer = get_optimizer(model.parameters(), config)
     criterion = torch.nn.CrossEntropyLoss()
 
-    writer = SummaryWriter(log_dir='./logs')
+    writer = SummaryWriter(log_dir=config['logs_dir'])
 
     for epoch in range(config['num_epochs']):
-        print('Epoch {:03d}'.format(epoch))
+        if config['verbose']:
+            print('Epoch {:03d}'.format(epoch))
 
         # Enable training mode (automatic differentiation + batch norm)
         model.train()
@@ -64,12 +66,14 @@ def train(config):
         log_metric(
             'accuracy',
             {'epoch': epoch, 'value': train_accuracy.val()},
-            {'split': 'train'}
+            {'split': 'train'},
+            config['verbose']
         )
         log_metric(
             'cross_entropy',
             {'epoch': epoch, 'value': train_loss.val()},
-            {'split': 'train'}
+            {'split': 'train'},
+            config['verbose']
         )
 
         writer.add_scalar('Loss/train', train_loss.val(), epoch)
@@ -91,16 +95,18 @@ def train(config):
         log_metric(
             'accuracy',
             {'epoch': epoch, 'value': test_accuracy.val()},
-            {'split': 'test'}
+            {'split': 'test'},
+            config['verbose']
         )
         log_metric(
             'cross_entropy',
             {'epoch': epoch, 'value': test_loss.val()},
-            {'split': 'test'}
+            {'split': 'test'},
+            config['verbose']
         )
 
         writer.add_scalar('Loss/test', test_loss.val(), epoch)
         writer.add_scalar('Accuracy/test', test_accuracy.val(), epoch)
-        writer.flush()
+        #writer.flush()
 
     writer.close()

@@ -26,10 +26,11 @@ def train(config):
     optimizer = get_optimizer(model.parameters(),config)
     criterion = torch.nn.CrossEntropyLoss()
 
-    writer = SummaryWriter(log_dir='./logs')
+    writer = SummaryWriter(log_dir=config['logs_dir'])
 
     for epoch in range(config['num_epochs']):
-        print('Epoch {:03d}'.format(epoch))
+        if config['verbose']:
+            print('Epoch {:03d}'.format(epoch))
 
         # Enable training mode (automatic differentiation + batch norm)
         model.train()
@@ -56,8 +57,6 @@ def train(config):
             prediction_1 = model(batch_x_1)
             prediction_2 = model(batch_x_2)
             loss = (criterion(prediction_1, batch_classes_1) + criterion(prediction_2, batch_classes_2)) / 2
-
-
             acc = accuracy(prediction_1.argmax(1) <= prediction_2.argmax(1), batch_y, argmax=False)
             loss.backward()
 
@@ -74,16 +73,18 @@ def train(config):
         log_metric(
             'accuracy',
             {'epoch': epoch, 'value': train_accuracy.val()},
-            {'split': 'train'}
+            {'split': 'train'},
+            config['verbose']
         )
         log_metric(
             'cross_entropy',
             {'epoch': epoch, 'value': train_loss.val()},
-            {'split': 'train'}
+            {'split': 'train'},
+            config['verbose']
         )
 
-        # writer.add_scalar('Loss/train', mean_train_loss.value(), epoch)
-        # writer.add_scalar('Accuracy/train', mean_train_accuracy.value(), epoch)
+        writer.add_scalar('Loss/train', train_loss.val(), epoch)
+        writer.add_scalar('Accuracy/train', train_accuracy.val(), epoch)
 
         # Evaluation
         model.eval()
@@ -112,16 +113,18 @@ def train(config):
         log_metric(
             'accuracy',
             {'epoch': epoch, 'value': test_accuracy.val()},
-            {'split': 'test'}
+            {'split': 'test'},
+            config['verbose']
         )
         log_metric(
             'cross_entropy',
             {'epoch': epoch, 'value': test_loss.val()},
-            {'split': 'test'}
+            {'split': 'test'},
+            config['verbose']
         )
 
-        # writer.add_scalar('Loss/test', mean_test_loss.value(), epoch)
-        # writer.add_scalar('Accuracy/test', mean_test_accuracy.value(), epoch)
-        writer.flush()
+        writer.add_scalar('Loss/test', test_loss.val(), epoch)
+        writer.add_scalar('Accuracy/test', test_accuracy.val(), epoch)
+        #writer.flush()
 
     writer.close()

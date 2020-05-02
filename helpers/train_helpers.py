@@ -13,12 +13,15 @@ def accuracy(predicted_logits, reference, argmax=True):
         labels = torch.argmax(predicted_logits, 1)
     else:
         labels = predicted_logits
-    correct_predictions = labels.eq(reference)
+    #print(labels.float())
+    #print(reference.float())
+    correct_predictions = labels.float().eq(reference.float())
     return correct_predictions.sum().float() / correct_predictions.nelement()
 
 
-def log_metric(name, values, tags):
-    print("{name}: {values} ({tags})".format(name=name, values=values, tags=tags))
+def log_metric(name, values, tags, verbose=1):
+    if verbose:
+        print("{name}: {values} ({tags})".format(name=name, values=values, tags=tags))
 
 def get_device():
     return torch.device('cuda' if torch.cuda.is_available() else 'cpu')
