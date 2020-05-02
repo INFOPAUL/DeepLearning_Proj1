@@ -128,3 +128,5 @@ def train(config):
         #writer.flush()
 
     writer.close()
+
+    return model

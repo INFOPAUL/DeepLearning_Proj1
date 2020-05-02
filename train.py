@@ -85,9 +85,12 @@ def train(config):
         test_accuracy = Mean()
         for batch_x, batch_y, batch_classes in test_loader:
             batch_x, batch_y = batch_x.to(device), batch_y.to(device)
+            
             prediction = model(batch_x)
             loss = criterion(prediction, batch_y)
+
             acc = accuracy(prediction, batch_y)
+
             test_loss.add(loss.item(), weight=len(batch_x))
             test_accuracy.add(acc.item(), weight=len(batch_x))
 
@@ -110,3 +113,5 @@ def train(config):
         #writer.flush()
 
     writer.close()
+
+    return model
