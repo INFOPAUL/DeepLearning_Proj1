@@ -28,9 +28,12 @@ class CustomDataset(MNIST):
         # with last [0] we take img part of tuple (img, target)
         img1 = super().__getitem__(self.pair_indices[index][0])[0]  # get first img of the pair transformed
         img2 = super().__getitem__(self.pair_indices[index][1])[0]  # get second img of the pair transformed
+        input = torch.cat((img1, img2), 0)
+        input = torch.functional.F.avg_pool2d(input, kernel_size=2)
 
         target  = self.target[index]
         classes = self.classes[index]
         
         # return input, target, classes
-        return torch.cat((img1, img2), 0), target, classes
+        return input, target, classes
+
