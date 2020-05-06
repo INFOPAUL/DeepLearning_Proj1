@@ -5,11 +5,12 @@ from train import Mean
 from dataset.CustomDataset import CustomDataset
 
 
-class Linear(nn.Module):
+class Logistic(nn.Module):
     def __init__(self, channels_in=2*14*14, channels_out=1):
         super().__init__()
         self.block1 = nn.Sequential(
-            nn.Linear(channels_in, channels_out)
+            nn.Linear(channels_in, channels_out),
+            nn.Sigmoid()
         )
 
     def forward(self, x):
@@ -73,8 +74,7 @@ class Linear(nn.Module):
         return correct_predictions.sum().float() / correct_predictions.nelement()
 
 
-
-class LinearDataset(CustomDataset):
+class LogisticDataset(CustomDataset):
 
     def __init__(self, root, train=True, transform=None, nb=1000):
         """

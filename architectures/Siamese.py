@@ -2,14 +2,14 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 from architectures.SimpleConvNet import SimpleConvNet
-from train_model_no_WS import accuracy, Mean
+from train import Mean
 from dataset.CustomDataset import CustomDataset
 
 
 class Siamese(nn.Module):
-    def __init__(self, class_num):
-        super(Siamese, self).__init__()
-        self.block1 = SimpleConvNet(class_num = 10, channels_in = 1)
+    def __init__(self, class_num=10):
+        super().__init__()
+        self.block1 = SimpleConvNet(class_num=10, channels_in=1)
 
         self.fc1 = nn.Linear(20, class_num)
 
@@ -34,14 +34,13 @@ class Siamese(nn.Module):
         for batch_x, batch_y, batch_classes in training_loader:
             batch_x, batch_y = batch_x.to(device), batch_y.to(device)
 
-
             # Set gradients to zero and Compute gradients for the batch
             optimizer.zero_grad()
 
             # Calculate loss and accuracy
             prediction = self(batch_x)
             loss = criterion(prediction, batch_y)
-            acc = accuracy(prediction, batch_y)
+            acc = self.accuracy_(prediction, batch_y)
             
             # Backward propagation of gradients
             loss.backward()
@@ -67,9 +66,28 @@ class Siamese(nn.Module):
             prediction = self(batch_x)
             loss = criterion(prediction, batch_y)
 
-            acc = accuracy(prediction, batch_y)
+            acc = self.accuracy_(prediction, batch_y)
 
             test_loss.update(loss.item(), n=len(batch_x))
             test_accuracy.update(acc.item(), n=len(batch_x))
 
         return test_loss, test_accuracy
+
+    def accuracy_(self, predicted_logits, reference, argmax=True):
+        """Compute the ratio of correctly predicted labels"""
+        if argmax:
+            labels = torch.argmax(predicted_logits, 1)
+        else:
+            labels = predicted_logits
+
+        correct_predictions = labels.eq(reference)
+        return correct_predictions.sum().float() / correct_predictions.nelement()
+
+
+class SiameseDataset(CustomDataset):
+
+    def __init__(self, root, train=True, transform=None, nb=1000):
+        super().__init__(root, train=train, transform=transform, nb=nb)
+
+    def __getitem__(self, index):
+        return super().__getitem__(index)

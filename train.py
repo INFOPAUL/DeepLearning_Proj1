@@ -29,6 +29,8 @@ def train(config):
 
     training_loader, test_loader = get_dataset(config)
 
+    print("Number of model parameters: {params}".format(params=sum(p.numel() for p in model.parameters() if p.requires_grad)))
+
     # Initialize tensorboard writer
     writer = SummaryWriter(log_dir=config['logs_dir'])
     # Initialize our history writer
@@ -81,6 +83,9 @@ def get_dataset(config):
     training_set = config['dataset']('./data/mnist/', train=True, transform=transform_train, nb=1000)
     test_set     = config['dataset']('./data/mnist/', train=False, transform=transform_test, nb=1000)
 
+    if config['verbose']:
+        print(training_set)
+        print(test_set)
 
     training_loader = torch.utils.data.DataLoader(
         training_set,
@@ -98,15 +103,7 @@ def get_dataset(config):
     return training_loader, test_loader
 
 
-def accuracy(predicted_logits, reference, argmax=True):
-    """Compute the ratio of correctly predicted labels"""
-    if argmax:
-        labels = torch.argmax(predicted_logits, 1)
-    else:
-        labels = predicted_logits
 
-    correct_predictions = labels.float().eq(reference.float())
-    return correct_predictions.sum().float() / correct_predictions.nelement()
 
 class Mean:
     def __init__(self):

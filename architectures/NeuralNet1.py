@@ -1,20 +1,30 @@
 import torch
 from torch import nn
 from torch.nn import functional as F
-from train import Mean
+from train import accuracy, Mean
 from dataset.CustomDataset import CustomDataset
 
 
-class Linear(nn.Module):
+class NeuralNet1(nn.Module):
     def __init__(self, channels_in=2*14*14, channels_out=1):
         super().__init__()
+
         self.block1 = nn.Sequential(
-            nn.Linear(channels_in, channels_out)
+            nn.Linear(channels_in, 256), 
+            nn.ReLU(),
+            nn.Linear(256, 128), 
+            nn.ReLU()
+        )
+
+        self.block2 = nn.Sequential(
+            nn.Linear(128, channels_out),
+            nn.Sigmoid() 
         )
 
     def forward(self, x):
         out = x.view(x.size(0), -1)
-        return self.block1(out)
+        out = self.block1(out)
+        return self.block2(out)
 
     def train_(self, training_loader, device, optimizer, criterion):
         # Train loss for this epoch
@@ -73,8 +83,7 @@ class Linear(nn.Module):
         return correct_predictions.sum().float() / correct_predictions.nelement()
 
 
-
-class LinearDataset(CustomDataset):
+class NeuralNet1Dataset(CustomDataset):
 
     def __init__(self, root, train=True, transform=None, nb=1000):
         """

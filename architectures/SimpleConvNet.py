@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 from torch.nn import functional as F
-from train_model_no_WS import accuracy, Mean
+from train import Mean
 from dataset.CustomDataset import CustomDataset
 
 class SimpleConvNet(nn.Module):
@@ -18,7 +18,7 @@ class SimpleConvNet(nn.Module):
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2))
 
-        self.fc1 = nn.Linear(7 * 7 * 64, 1000)
+        self.fc1 = nn.Linear(16 * 64, 1000)  # 16
 
         self.fc2 = nn.Linear(1000, class_num)
 
@@ -31,7 +31,7 @@ class SimpleConvNet(nn.Module):
         out = out.reshape(out.size(0), -1)
 
         # Relu activation of last layer
-        out = F.relu(self.fc1(out.view(-1, 7 * 7 * 64)))
+        out = F.relu(self.fc1(out.view(-1, 16 * 64)))  # 16
 
         out = self.fc2(out)
         return out
@@ -44,8 +44,8 @@ class SimpleConvNet(nn.Module):
         
         for batch_x, batch_y, batch_classes in training_loader:
 
-            batch_x_1 = batch_x[:, 0, :, :].view(-1, 1, batch_x.size(2), batch_x.size(3)).to(device)
-            batch_x_2 = batch_x[:, 1, :, :].view(-1, 1, batch_x.size(2), batch_x.size(3)).to(device)
+            batch_x_1 = batch_x[:, 0, :, :].view(-1, 1, batch_x.size(2), batch_x.size(3)).to(device).float()
+            batch_x_2 = batch_x[:, 1, :, :].view(-1, 1, batch_x.size(2), batch_x.size(3)).to(device).float()
 
             batch_classes_1 = batch_classes[:, 0].to(device)
             batch_classes_2 = batch_classes[:, 1].to(device)
@@ -56,9 +56,9 @@ class SimpleConvNet(nn.Module):
 
             # Calculate loss and accuracy
             prediction_1 = self(batch_x_1)
-            prediction_2 = self(batch_x_2)   
+            prediction_2 = self(batch_x_2)
             loss = (criterion(prediction_1, batch_classes_1) + criterion(prediction_2, batch_classes_2)) / 2
-            acc = accuracy(prediction_1.argmax(1) <= prediction_2.argmax(1), batch_y, argmax=False)
+            acc = self.accuracy_(prediction_1.argmax(1) <= prediction_2.argmax(1), batch_y, argmax=False)
             
             # Backward propagation of gradients
             loss.backward()
@@ -80,8 +80,8 @@ class SimpleConvNet(nn.Module):
 
         for batch_x, batch_y, batch_classes in test_loader:
 
-            batch_x_1 = batch_x[:, 0, :, :].view(-1, 1, batch_x.size(2), batch_x.size(3)).to(device)
-            batch_x_2 = batch_x[:, 1, :, :].view(-1, 1, batch_x.size(2), batch_x.size(3)).to(device)
+            batch_x_1 = batch_x[:, 0, :, :].view(-1, 1, batch_x.size(2), batch_x.size(3)).to(device).float()
+            batch_x_2 = batch_x[:, 1, :, :].view(-1, 1, batch_x.size(2), batch_x.size(3)).to(device).float()
 
             batch_classes_1 = batch_classes[:, 0].to(device)
             batch_classes_2 = batch_classes[:, 1].to(device)
@@ -92,12 +92,22 @@ class SimpleConvNet(nn.Module):
             prediction_2 = self(batch_x_2)
             loss = (criterion(prediction_1, batch_classes_1) + criterion(prediction_2, batch_classes_2)) / 2
 
-            acc = accuracy(prediction_1.argmax(1) <= prediction_2.argmax(1), batch_y, argmax=False)
+            acc = self.accuracy_(prediction_1.argmax(1) <= prediction_2.argmax(1), batch_y, argmax=False)
 
             test_loss.update(loss.item(), n=len(batch_x))
             test_accuracy.update(acc.item(), n=len(batch_x))
 
         return test_loss, test_accuracy
+
+    def accuracy_(self, predicted_logits, reference, argmax=True):
+        """Compute the ratio of correctly predicted labels"""
+        if argmax:
+            labels = torch.argmax(predicted_logits, 1)
+        else:
+            labels = predicted_logits
+
+        correct_predictions = labels.float().eq(reference.float())
+        return correct_predictions.sum().float() / correct_predictions.nelement()
 
 
 class SimpleConvNetDataset(CustomDataset):
