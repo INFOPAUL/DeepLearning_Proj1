@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 from torch.nn import functional as F
-from train import accuracy, Mean
+from train import Mean
 from dataset.CustomDataset import CustomDataset
 
 

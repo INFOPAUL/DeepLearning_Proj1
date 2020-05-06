@@ -103,8 +103,6 @@ def get_dataset(config):
     return training_loader, test_loader
 
 
-
-
 class Mean:
     def __init__(self):
         self.avg = None
