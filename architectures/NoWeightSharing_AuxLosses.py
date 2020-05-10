@@ -24,7 +24,7 @@ class NoWeightSharingAuxLosses(nn.Module):
 
         return out1, out2, out
 
-    def train_(self, training_loader, device, optimizer, criterion):
+    def train_(self, training_loader, device, optimizer):
         # Train loss for this epoch
         train_loss = Mean()
         # Train accuracy for this epoch
@@ -59,7 +59,7 @@ class NoWeightSharingAuxLosses(nn.Module):
 
         return train_loss, train_accuracy
 
-    def eval_(self, test_loader, device, criterion):
+    def eval_(self, test_loader, device):
         # Test loss for this epoch
         test_loss = Mean()
         # Test accuracy for this epoch

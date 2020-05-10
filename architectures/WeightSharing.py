@@ -22,7 +22,7 @@ class WeightSharing(nn.Module):
 
         return out1, out2, out
 
-    def train_(self, training_loader, device, optimizer, criterion):
+    def train_(self, training_loader, device, optimizer):
         # Train loss for this epoch
         train_loss = Mean()
         # Train accuracy for this epoch
@@ -36,7 +36,7 @@ class WeightSharing(nn.Module):
 
             # Calculate loss and accuracy
             _, _, prediction = self(batch_x)
-            loss = criterion(prediction, batch_y)
+            loss = F.cross_entropy(prediction, batch_y)
             acc = self.accuracy_(prediction, batch_y)
             
             # Backward propagation of gradients
@@ -51,7 +51,7 @@ class WeightSharing(nn.Module):
 
         return train_loss, train_accuracy
 
-    def eval_(self, test_loader, device, criterion):
+    def eval_(self, test_loader, device):
         # Test loss for this epoch
         test_loss = Mean()
         # Test accuracy for this epoch
@@ -61,7 +61,7 @@ class WeightSharing(nn.Module):
             batch_x, batch_y = batch_x.to(device), batch_y.to(device)
             
             _, _, prediction = self(batch_x)
-            loss = criterion(prediction, batch_y)
+            loss = F.cross_entropy(prediction, batch_y)
             acc = self.accuracy_(prediction, batch_y)
 
             test_loss.update(loss.item(), n=len(batch_x))

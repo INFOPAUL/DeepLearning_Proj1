@@ -17,7 +17,7 @@ def train(config):
     # We will run on CUDA if there is a GPU available
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    # Configure the dataset, model, optimizer and criterion based on the global `config` dictionary.
+    # Configure the dataset, model, optimizer based on the global `config` dictionary.
     model = config['model']
     model.to(device)
     if device == 'cuda':
@@ -25,7 +25,6 @@ def train(config):
         torch.backends.cudnn.benchmark = True
 
     optimizer = config['optimizer'](model.parameters(), lr=config['learning_rate'])
-    criterion = config['criterion']
 
     training_loader, test_loader = get_dataset(config)
 
@@ -41,7 +40,7 @@ def train(config):
         ### TRAIN ###
         # Enable training mode (automatic differentiation + batch norm)
         model.train()
-        train_loss, train_accuracy = model.train_(training_loader, device, optimizer, criterion)
+        train_loss, train_accuracy = model.train_(training_loader, device, optimizer)
 
         writer.add_scalar('Loss/train', train_loss.val(), epoch)
         writer.add_scalar('Accuracy/train', train_accuracy.val(), epoch)
@@ -49,7 +48,7 @@ def train(config):
         ### EVALUATION ###
         # Enable evaluation mode
         model.eval()
-        test_loss, test_accuracy = model.eval_(test_loader, device, criterion)
+        test_loss, test_accuracy = model.eval_(test_loader, device)
         
         writer.add_scalar('Loss/test', test_loss.val(), epoch)
         writer.add_scalar('Accuracy/test', test_accuracy.val(), epoch)

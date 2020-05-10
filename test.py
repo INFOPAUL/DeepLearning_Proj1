@@ -1,54 +1,86 @@
+import torch
 import train
-import train_model_no_WS
-
-config_simple = dict(
-    optimizer='Adam',
-    optimizer_learning_rate=0.001,
-    batch_size=128,
-    num_epochs=250,
-    model='simple_conv',
-    class_num=2,
-    channels_in=2,
-    augmentation=False
-)
-
-#train.train(config_simple)
+from datetime import datetime
+from architectures.SimpleConvNet import SimpleConvNet, SimpleConvNetDataset
+from architectures.WeightSharing import WeightSharing, WeightSharingDataset
+from architectures.WeightSharing_AuxLosses import WeightSharingAuxLosses, WeightSharingAuxLossesDataset
+from architectures.NoWeightSharing import NoWeightSharing, NoWeightSharingDataset
+from architectures.NoWeightSharing_AuxLosses import NoWeightSharingAuxLosses, NoWeightSharingAuxLossesDataset
 
 
-config_model_no_WS = dict(
-    optimizer='Adam',
-    optimizer_learning_rate=0.001,
-    batch_size=128,
-    num_epochs=250,
-    model='simple_conv',
-    class_num=10,
-    channels_in=1,
-    augmentation=False
-)
-#train_model_no_WS.train(config_model_no_WS)
+"""
+NETWORK choices:
+    1 - SimpleConvNet
+    2 - WeightSharing
+    3 - WeightSharingAuxLosses
+    4 - NoWeightSharing
+    5 - NoWeightSharingAuxLosses
+"""
+NETWORK = 1
 
-config_siamese = dict(
-    optimizer='Adam',
-    optimizer_learning_rate=0.001,
-    batch_size=128,
-    num_epochs=250,
-    model='siamese',
-    class_num=2,
-    channels_in=1,
-    augmentation=False
-)
 
-#train.train(config_siamese)
+if NETWORK==1:
+    config_model = dict(
+        logs_dir='./logs/SimpleConvNet/{}'.format(datetime.now().strftime("%Y%m%d_%H%M%S")),
+        dataset=SimpleConvNetDataset,
+        optimizer=torch.optim.Adam,
+        learning_rate=0.001,
+        batch_size=1000,
+        num_epochs=200, 
+        model=SimpleConvNet(class_num=10, channels_in=1), 
+        augmentation=False,
+        verbose=1
+    )
+elif NETWORK==2:
+    config_model = dict(
+        logs_dir='./logs/WeightSharing/{}'.format(datetime.now().strftime("%Y%m%d_%H%M%S")),
+        dataset=WeightSharingDataset,
+        optimizer=torch.optim.Adam,
+        learning_rate=0.001,
+        batch_size=1000,
+        num_epochs=200, 
+        model=WeightSharing(), 
+        augmentation=False,
+        verbose=1
+    )
+elif NETWORK==3:
+    config_model = dict(
+        logs_dir='./logs/WeightSharingAuxLosses/{}'.format(datetime.now().strftime("%Y%m%d_%H%M%S")),
+        dataset=WeightSharingAuxLossesDataset,
+        optimizer=torch.optim.Adam,
+        learning_rate=0.001,
+        batch_size=1000,
+        num_epochs=200,  
+        model=WeightSharingAuxLosses(), 
+        augmentation=False,
+        verbose=1
+    )
 
-config_siamese_no_WS = dict(
-    optimizer='Adam',
-    optimizer_learning_rate=0.001,
-    batch_size=128,
-    num_epochs=250,
-    model='siamese_no_WS',
-    class_num=2,
-    channels_in=1,
-    augmentation=False
-)
+elif NETWORK==4:
+    config_model = dict(
+        logs_dir='./logs/NoWeightSharing/{}'.format(datetime.now().strftime("%Y%m%d_%H%M%S")),
+        dataset=NoWeightSharingDataset,
+        optimizer=torch.optim.Adam,
+        learning_rate=0.001,
+        batch_size=1000,
+        num_epochs=200,  
+        model=NoWeightSharing(), 
+        augmentation=False,
+        verbose=1
+    )
 
-train.train(config_siamese_no_WS)
+elif NETWORK==5:
+    config_model = dict(
+        logs_dir='./logs/NoWeightSharingAuxLosses/{}'.format(datetime.now().strftime("%Y%m%d_%H%M%S")),
+        dataset=NoWeightSharingAuxLossesDataset,
+        optimizer=torch.optim.Adam,
+        learning_rate=0.001,
+        batch_size=1000,
+        num_epochs=200, 
+        model=NoWeightSharingAuxLosses(), 
+        augmentation=False,
+        verbose=1
+    )
+
+
+model, history = train.train(config_model)

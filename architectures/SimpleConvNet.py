@@ -42,7 +42,7 @@ class SimpleConvNet(nn.Module):
 
         return digit1, digit2, digit1.argmax(1) <= digit2.argmax(1)
 
-    def train_(self, training_loader, device, optimizer, criterion):
+    def train_(self, training_loader, device, optimizer):
         # Train loss for this epoch
         train_loss = Mean()
         # Train accuracy for this epoch
@@ -58,7 +58,7 @@ class SimpleConvNet(nn.Module):
 
             # Calculate loss and accuracy
             predict_class_1, predict_class_2, predict_y = self(batch_x)
-            loss = (criterion(predict_class_1, batch_classes_1) + criterion(predict_class_2, batch_classes_2)) / 2
+            loss = (F.cross_entropy(predict_class_1, batch_classes_1) + F.cross_entropy(predict_class_2, batch_classes_2)) / 2
             acc = self.accuracy_(predict_y, batch_y)
             
             # Backward propagation of gradients
@@ -73,7 +73,7 @@ class SimpleConvNet(nn.Module):
 
         return train_loss, train_accuracy
 
-    def eval_(self, test_loader, device, criterion):
+    def eval_(self, test_loader, device):
         # Test loss for this epoch
         test_loss = Mean()
         # Test accuracy for this epoch
@@ -88,7 +88,7 @@ class SimpleConvNet(nn.Module):
 
             # Calculate loss and accuracy
             predict_class_1, predict_class_2, predict_y = self(batch_x)
-            loss = (criterion(predict_class_1, batch_classes_1) + criterion(predict_class_2, batch_classes_2)) / 2
+            loss = (F.cross_entropy(predict_class_1, batch_classes_1) + F.cross_entropy(predict_class_2, batch_classes_2)) / 2
             acc = self.accuracy_(predict_y, batch_y)
            
             test_loss.update(loss.item(), n=len(batch_x))
