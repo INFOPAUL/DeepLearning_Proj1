@@ -37,10 +37,6 @@ class CustomDataset(MNIST):
         return len(self.input)
                       
     def __getitem__(self, index):
-        # with last [0] we take img part of tuple (img, target)
-        # img1 = super().__getitem__(self.pair_indices[index][0])[0]  # get first img of the pair transformed
-        # img2 = super().__getitem__(self.pair_indices[index][1])[0]  # get second img of the pair transformed
-        # input = torch.cat((img1, img2), 0)
         input = self.input[index]
         target  = self.target[index]
         classes = self.classes[index]

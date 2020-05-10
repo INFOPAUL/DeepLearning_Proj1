@@ -29,7 +29,8 @@ def train(config):
 
     training_loader, test_loader = get_dataset(config)
 
-    print("Number of model parameters: {params}".format(params=sum(p.numel() for p in model.parameters() if p.requires_grad)))
+    if config['verbose']:
+        print("Number of model parameters: {params}".format(params=sum(p.numel() for p in model.parameters() if p.requires_grad)))
 
     # Initialize tensorboard writer
     writer = SummaryWriter(log_dir=config['logs_dir'])

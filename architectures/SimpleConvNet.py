@@ -6,35 +6,41 @@ from dataset.CustomDataset import CustomDataset
 
 class SimpleConvNet(nn.Module):
 
-    def __init__(self, class_num, channels_in):
+    def __init__(self, class_num=10, channels_in=1):
         super().__init__()
-        self.block1 = nn.Sequential(
+        self.features_extract = nn.Sequential(
             nn.Conv2d(channels_in, 32, kernel_size=5, stride=1, padding=2),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2))
-
-        self.block2 = nn.Sequential(
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            
             nn.Conv2d(32, 64, kernel_size=4, stride=1, padding=2),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2))
 
-        self.fc1 = nn.Linear(16 * 64, 1000)  # 16
-
-        self.fc2 = nn.Linear(1000, class_num)
+        self.digit_classifier = nn.Sequential(
+            nn.Linear(16 * 64, 1000),
+            nn.ReLU(),
+            nn.Linear(1000, class_num)
+        )
 
     def forward(self, x):
-        out = self.block1(x)
+        # size: 1000, 2, 14, 14
+        x1 = x[:, 0, :, :].view(-1, 1, x.size(2), x.size(3))
+        x2 = x[:, 1, :, :].view(-1, 1, x.size(2), x.size(3))
 
-        out = self.block2(out)
+        # size: 1000, 1, 14, 14
+        out1 = self.features_extract(x1).view(x.size(0), -1)  
+        # size: 1000, 1024
+        digit1 = self.digit_classifier(out1)
+        # size: 1000, 10
 
-        # Reshape (batch, 1024)
-        out = out.reshape(out.size(0), -1)
+        # size: 1000, 1, 14, 14
+        out2 = self.features_extract(x2).view(x.size(0), -1)  
+        # size: 1000, 1024
+        digit2 = self.digit_classifier(out2)
+        # size: 1000, 10
 
-        # Relu activation of last layer
-        out = F.relu(self.fc1(out.view(-1, 16 * 64)))  # 16
-
-        out = self.fc2(out)
-        return out
+        return digit1, digit2, digit1.argmax(1) <= digit2.argmax(1)
 
     def train_(self, training_loader, device, optimizer, criterion):
         # Train loss for this epoch
@@ -43,22 +49,17 @@ class SimpleConvNet(nn.Module):
         train_accuracy = Mean()
         
         for batch_x, batch_y, batch_classes in training_loader:
-
-            batch_x_1 = batch_x[:, 0, :, :].view(-1, 1, batch_x.size(2), batch_x.size(3)).to(device).float()
-            batch_x_2 = batch_x[:, 1, :, :].view(-1, 1, batch_x.size(2), batch_x.size(3)).to(device).float()
-
+            batch_x, batch_y = batch_x.to(device), batch_y.to(device)
             batch_classes_1 = batch_classes[:, 0].to(device)
             batch_classes_2 = batch_classes[:, 1].to(device)
-            batch_y = batch_y.to(device)
 
             # Set gradients to zero and Compute gradients for the batch
             optimizer.zero_grad()
 
             # Calculate loss and accuracy
-            prediction_1 = self(batch_x_1)
-            prediction_2 = self(batch_x_2)
-            loss = (criterion(prediction_1, batch_classes_1) + criterion(prediction_2, batch_classes_2)) / 2
-            acc = self.accuracy_(prediction_1.argmax(1) <= prediction_2.argmax(1), batch_y, argmax=False)
+            predict_class_1, predict_class_2, predict_y = self(batch_x)
+            loss = (criterion(predict_class_1, batch_classes_1) + criterion(predict_class_2, batch_classes_2)) / 2
+            acc = self.accuracy_(predict_y, batch_y)
             
             # Backward propagation of gradients
             loss.backward()
@@ -79,34 +80,25 @@ class SimpleConvNet(nn.Module):
         test_accuracy = Mean()
 
         for batch_x, batch_y, batch_classes in test_loader:
-
-            batch_x_1 = batch_x[:, 0, :, :].view(-1, 1, batch_x.size(2), batch_x.size(3)).to(device).float()
-            batch_x_2 = batch_x[:, 1, :, :].view(-1, 1, batch_x.size(2), batch_x.size(3)).to(device).float()
-
+            batch_x = batch_x.to(device)
+            
             batch_classes_1 = batch_classes[:, 0].to(device)
             batch_classes_2 = batch_classes[:, 1].to(device)
-
             batch_y = batch_y.to(device)
 
-            prediction_1 = self(batch_x_1)
-            prediction_2 = self(batch_x_2)
-            loss = (criterion(prediction_1, batch_classes_1) + criterion(prediction_2, batch_classes_2)) / 2
-
-            acc = self.accuracy_(prediction_1.argmax(1) <= prediction_2.argmax(1), batch_y, argmax=False)
-
+            # Calculate loss and accuracy
+            predict_class_1, predict_class_2, predict_y = self(batch_x)
+            loss = (criterion(predict_class_1, batch_classes_1) + criterion(predict_class_2, batch_classes_2)) / 2
+            acc = self.accuracy_(predict_y, batch_y)
+           
             test_loss.update(loss.item(), n=len(batch_x))
             test_accuracy.update(acc.item(), n=len(batch_x))
 
         return test_loss, test_accuracy
 
-    def accuracy_(self, predicted_logits, reference, argmax=True):
+    def accuracy_(self, predicted_logits, reference):
         """Compute the ratio of correctly predicted labels"""
-        if argmax:
-            labels = torch.argmax(predicted_logits, 1)
-        else:
-            labels = predicted_logits
-
-        correct_predictions = labels.float().eq(reference.float())
+        correct_predictions = predicted_logits.float().eq(reference.float())
         return correct_predictions.sum().float() / correct_predictions.nelement()
 
 
