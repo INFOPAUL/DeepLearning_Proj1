@@ -28,7 +28,7 @@ if NETWORK==1:
         batch_size=1000,
         num_epochs=200, 
         model=SimpleConvNet(class_num=10, channels_in=1), 
-        augmentation=False,
+        augmentation=True,
         verbose=1
     )
 elif NETWORK==2:
@@ -40,7 +40,7 @@ elif NETWORK==2:
         batch_size=1000,
         num_epochs=200, 
         model=WeightSharing(), 
-        augmentation=False,
+        augmentation=True,
         verbose=1
     )
 elif NETWORK==3:
@@ -52,7 +52,7 @@ elif NETWORK==3:
         batch_size=1000,
         num_epochs=200,  
         model=WeightSharingAuxLosses(), 
-        augmentation=False,
+        augmentation=True,
         verbose=1
     )
 
@@ -65,7 +65,7 @@ elif NETWORK==4:
         batch_size=1000,
         num_epochs=200,  
         model=NoWeightSharing(), 
-        augmentation=False,
+        augmentation=True,
         verbose=1
     )
 
@@ -78,7 +78,7 @@ elif NETWORK==5:
         batch_size=1000,
         num_epochs=200, 
         model=NoWeightSharingAuxLosses(), 
-        augmentation=False,
+        augmentation=True,
         verbose=1
     )
 
