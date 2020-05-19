@@ -72,7 +72,7 @@ def get_dataset(config):
                   torchvision.transforms.Normalize([data_mean], [data_stddev])]
     
     # TRAIN transforms
-    train_transforms = transforms + config['augmentation']*[torchvision.transforms.RandomCrop(28, padding=4),  
+    train_transforms = transforms + config['augmentation']*[torchvision.transforms.RandomCrop(14, padding=4),  
                                                             torchvision.transforms.RandomHorizontalFlip()]
     transform_train = torchvision.transforms.Compose(train_transforms)
 
