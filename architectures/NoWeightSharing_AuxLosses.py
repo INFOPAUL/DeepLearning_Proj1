@@ -7,11 +7,34 @@ from dataset.CustomDataset import CustomDataset
 
 
 class NoWeightSharingAuxLosses(nn.Module):
+    """
+    This model:
+    - does not implement weight sharing between two images (NoWeightSharing)
+    - uses auxiliary losses for the performance measure (AuxLosses)
+
+    Parameters
+    ----------
+    class_num: int
+        Number of classes
+    channels_in: int
+        Number of image channels
     
-    def __init__(self, class_num=10):
+    Model architecture:
+        - block1: uses previously implemented SimpleConvNet to classify the digit on the first image
+        - block2: uses previously implemented SimpleConvNet to classify the digit on the second image
+        these two block don't share the weights
+        - fc1: fully-connected layer that uses two-channeled image and outputs the feature vector
+        that is used to classify whether the first digit is less than or equal to the second digit.
+    
+    Auxiliary loss:
+        - cross entropy loss of predicting the first digit +
+        - cross entropy loss of predicting the second digit +
+        - cross entropy loss of predicting their relation (<=)
+    """
+    def __init__(self, class_num=10, channels_in=1):
         super().__init__()
-        self.block1 = SimpleConvNet(class_num=10, channels_in=1)
-        self.block2 = SimpleConvNet(class_num=10, channels_in=1)
+        self.block1 = SimpleConvNet(class_num=class_num, channels_in=channels_in)
+        self.block2 = SimpleConvNet(class_num=class_num, channels_in=channels_in)
 
         self.fc1 = nn.Linear(20, class_num)
 
@@ -25,6 +48,25 @@ class NoWeightSharingAuxLosses(nn.Module):
         return out1, out2, out
 
     def train_(self, training_loader, device, optimizer):
+        """Train the model
+        
+        Parameters
+        ----------
+        training_loader: generator
+            Training data generator
+        device: str
+            cuda or cpu
+        optimizer: callable
+            One of the PyTorch optimizers
+
+        Returns
+        -------
+        train_loss: Mean
+            Class object that collects the train loss
+        train_accuracy: Mean
+            Class object that collects the train accuracy
+        """
+
         # Train loss for this epoch
         train_loss = Mean()
         # Train accuracy for this epoch
@@ -60,6 +102,22 @@ class NoWeightSharingAuxLosses(nn.Module):
         return train_loss, train_accuracy
 
     def eval_(self, test_loader, device):
+        """Evaluate the model
+        
+        Parameters
+        ----------
+        test_loader: generator
+            Test data generator
+        device: str
+            cuda or cpu
+
+        Returns
+        -------
+        test_loss: Mean
+            Class object that collects the test loss
+        test_accuracy: Mean
+            Class object that collects the test accuracy
+        """
         # Test loss for this epoch
         test_loss = Mean()
         # Test accuracy for this epoch
@@ -82,12 +140,22 @@ class NoWeightSharingAuxLosses(nn.Module):
         return test_loss, test_accuracy
 
     def accuracy_(self, predicted_logits, reference, argmax=True):
-        """Compute the ratio of correctly predicted labels"""
+        """Compute the ratio of correctly predicted labels
+        
+        Parameters
+        ----------
+        predicted_logits: tensor
+            One hot label of the predicted value
+        reference: tensor
+            Target value
+        """
         labels = torch.argmax(predicted_logits, 1)
         correct_predictions = labels.eq(reference)
         return correct_predictions.sum().float() / correct_predictions.nelement()
 
+
 class NoWeightSharingAuxLossesDataset(CustomDataset):
+    """Dataset generator for the NoWeightSharingAuxLosses model"""
 
     def __init__(self, root, train=True, transform=None, nb=1000):
         super().__init__(root, train=train, transform=transform, nb=nb)

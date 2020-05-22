@@ -3,7 +3,6 @@ import torch
 import torchvision
 from torch import nn
 from torch.utils.tensorboard import SummaryWriter
-# from architectures.SimpleConvNet import SimpleConvNet
 from dataset.CustomDataset import CustomDataset
 import matplotlib.pyplot as plt
 try:import seaborn as sns; sns.set(style="whitegrid", color_codes=True)
@@ -11,6 +10,7 @@ except ImportError: pass
 
 
 def train(config):
+    """Main method of the program that performs the training of the specified model in the config dictionary"""
     # Set the seed
     #torch.manual_seed(config['seed'])
 
@@ -64,6 +64,7 @@ def train(config):
 
 
 def get_dataset(config):
+    """Method that generates the dataset and performs augmentation in case enabled"""
     # dataset statistics: https://discuss.pytorch.org/t/normalization-in-the-mnist-example/457
     data_mean = 0.1307
     data_stddev = 0.3081
@@ -79,7 +80,6 @@ def get_dataset(config):
     # TEST transforms
     transform_test = torchvision.transforms.Compose(transforms)
 
-
     training_set = config['dataset']('./data/mnist/', train=True, transform=transform_train, nb=1000)
     test_set     = config['dataset']('./data/mnist/', train=False, transform=transform_test, nb=1000)
 
@@ -87,12 +87,14 @@ def get_dataset(config):
         print(training_set)
         print(test_set)
 
+    # create training generator
     training_loader = torch.utils.data.DataLoader(
         training_set,
         batch_size=config['batch_size'],
         shuffle=True,
         num_workers=2
     )
+    # create test generator
     test_loader = torch.utils.data.DataLoader(
         test_set,
         batch_size=config['batch_size'],
@@ -104,6 +106,7 @@ def get_dataset(config):
 
 
 class Mean:
+    """Class for calculating the training and test losses and accuracies"""
     def __init__(self):
         self.avg = None
         self.counter = 0
@@ -120,7 +123,7 @@ class Mean:
         return self.avg
 
 class History:
-    """Computes and stores the average and current value"""
+    """Collects the train and test losses and accuracies"""
     def __init__(self):
         self.epochs = []
         self.losses_train = []
@@ -129,6 +132,7 @@ class History:
         self.accs_test = []
 
     def update(self, epoch, loss_train, loss_test, acc_train, acc_test):
+        """Update the list for collection"""
         self.epochs += [epoch]
         self.losses_train += [loss_train]
         self.losses_test += [loss_test]
@@ -136,9 +140,10 @@ class History:
         self.accs_test += [acc_test]
 
     def __repr__(self):
-        return "epoch [{epoch:03d}] loss_train: {loss_train:.2e} loss_test: {loss_test:.2e} acc_train: {acc_train:.2e} acc_test: {acc_test:.2e}".format(epoch=self.epochs[-1], loss_train=self.losses_train[-1], loss_test=self.losses_test[-1], acc_train=self.accs_train[-1], acc_test=self.accs_test[-1])
+        return "epoch [{epoch:03d}] loss_train: {loss_train:.3f} loss_test: {loss_test:.3f} acc_train: {acc_train:.3f} acc_test: {acc_test:.3f}".format(epoch=self.epochs[-1], loss_train=self.losses_train[-1], loss_test=self.losses_test[-1], acc_train=self.accs_train[-1], acc_test=self.accs_test[-1])
 
     def plot(self):
+        """Plot test and train performance"""
         fig, axs = plt.subplots(2, 1, figsize=(10,16))
         axs[0].plot(self.epochs, self.losses_test, marker="o", markersize=3, color="red", label="test loss");
         axs[0].plot(self.epochs, self.losses_train, marker="o", markersize=3, color="blue", label="train loss");
