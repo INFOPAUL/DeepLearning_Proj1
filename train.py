@@ -2,7 +2,7 @@
 import torch
 import torchvision
 from torch import nn
-from torch.utils.tensorboard import SummaryWriter
+# from torch.utils.tensorboard import SummaryWriter
 from dataset.CustomDataset import CustomDataset
 import matplotlib.pyplot as plt
 try:import seaborn as sns; sns.set(style="whitegrid", color_codes=True)
@@ -32,7 +32,7 @@ def train(config):
         print("Number of model parameters: {params}".format(params=sum(p.numel() for p in model.parameters() if p.requires_grad)))
 
     # Initialize tensorboard writer
-    writer = SummaryWriter(log_dir=config['logs_dir'])
+    # writer = SummaryWriter(log_dir=config['logs_dir'])
     # Initialize our history writer
     history = History()
 
@@ -42,23 +42,23 @@ def train(config):
         model.train()
         train_loss, train_accuracy = model.train_(training_loader, device, optimizer)
 
-        writer.add_scalar('Loss/train', train_loss.val(), epoch)
-        writer.add_scalar('Accuracy/train', train_accuracy.val(), epoch)
+        # writer.add_scalar('Loss/train', train_loss.val(), epoch)
+        # writer.add_scalar('Accuracy/train', train_accuracy.val(), epoch)
 
         ### EVALUATION ###
         # Enable evaluation mode
         model.eval()
         test_loss, test_accuracy = model.eval_(test_loader, device)
         
-        writer.add_scalar('Loss/test', test_loss.val(), epoch)
-        writer.add_scalar('Accuracy/test', test_accuracy.val(), epoch)
+        # writer.add_scalar('Loss/test', test_loss.val(), epoch)
+        # writer.add_scalar('Accuracy/test', test_accuracy.val(), epoch)
 
         # Log training stats
         history.update(epoch, train_loss.val(), test_loss.val(), train_accuracy.val(), test_accuracy.val())
         if config['verbose']:
             print(history)
 
-    writer.close()
+    # writer.close()
 
     return model, history
 
